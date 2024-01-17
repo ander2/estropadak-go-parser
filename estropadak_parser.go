@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 
 	"golang.org/x/net/html"
 )
@@ -32,15 +34,12 @@ func main() {
 
 	estropada = Estropada{}
 	reader := io.Reader(os.Stdin)
-	result, err := parse_estropadak_doc(&estropada, reader)
+	_, err := parse_estropadak_doc(&estropada, reader)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot parse doc %s", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Got %s %s after parse\n", result, estropada.Name)
-	for _, res := range estropada.Results {
-		fmt.Printf("- [%d] %s %s - %s \n", res.Position, res.TeamName, res.Ziabogak, res.Time)
-	}
+	format_result(estropada)
 }
 
 
@@ -164,9 +163,7 @@ func parse_results(t *html.Tokenizer) []Result {
 	tag, has_attrs := t.TagName()
 	if t.Token().Type == html.StartTagToken && string(tag) == "table" && has_attrs {
 		for attr, val, more_attrs := t.TagAttr(); more_attrs == true; attr, val, more_attrs = t.TagAttr() {
-			fmt.Printf("Found attr -%s- with val %s\n", attr, val)
 			if string(attr) == "summary" && string(val) == "Clasificación por regata" {
-				fmt.Println("Found table with summary")
 				next_token := t.Next()
 				for result_parsed == false {
 					tag, has_attrs = t.TagName()
@@ -190,7 +187,6 @@ func parse_results(t *html.Tokenizer) []Result {
 							pos, err := strconv.Atoi(aux_position)
 							if err == nil {
 								result.Position = pos
-								fmt.Printf("Recorded %s %d %d\n", aux_position, pos, result.Position)
 							} else {
 								fmt.Println(err)
 								os.Exit(1)
@@ -219,7 +215,6 @@ func parse_results(t *html.Tokenizer) []Result {
 					// }
 
 					if next_token == html.EndTagToken && string(tag) == "tr" && on_record{
-						fmt.Printf("Appending %s\n", result.TeamName)
 						results = append(results, result)
 					}
 
@@ -244,7 +239,6 @@ func parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, error) {
 		if title == "" {
 			title = parse_title(tokenizer)
 			if title != "" {
-				fmt.Println(title)
 				estropada.Name = title
 			}
 		}
@@ -258,7 +252,6 @@ func parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, error) {
 		general_results := parse_results(tokenizer)
 		for _, res := range general_results  {
 			for i, part_res := range estropada.Results  {
-				fmt.Println(">>>>>>>", res.TeamName, part_res.TeamName)
 				if part_res.TeamName == res.TeamName {
 					estropada.Results[i].Position = res.Position
 					estropada.Results[i].Time = res.Time
@@ -272,4 +265,14 @@ func parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, error) {
 		tokenizer.Next()
 	}
 	return "ok", nil
+}
+
+func format_result(estropada Estropada) {
+    sort.Sort(ByPosition(estropada.Results))
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+	fmt.Fprintf(w, "\t%s\n", estropada.Name)
+	for _, res := range estropada.Results {
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", res.Position, res.TeamName, res.Ziabogak, res.Time)
+	}
+	w.Flush()
 }
