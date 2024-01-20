@@ -71,8 +71,9 @@ func parse_heats(t *html.Tokenizer) []Result {
 	var results []Result
 	var result_parsed, on_record bool
 	var next_token html.TokenType
+	var section_end = false
 
-	for heat_counter < 3 {
+	for section_end == false {
 		tag, has_attrs := t.TagName()
 		if t.Token().Type == html.StartTagToken && string(tag) == "table" && has_attrs {
 			for attr, val, more_attrs := t.TagAttr(); more_attrs == true; attr, val, more_attrs = t.TagAttr() {
@@ -145,6 +146,9 @@ func parse_heats(t *html.Tokenizer) []Result {
 					result_parsed = false
 				}
 			}
+		}
+		if t.Token().Type == html.CommentToken && string(t.Raw()) == "<!--INICIO_clasificacion-->" {
+			section_end = true
 		}
 		next_token = t.Next()
 	}

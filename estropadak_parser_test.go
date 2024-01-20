@@ -68,3 +68,39 @@ func TestParseHeats(t *testing.T) {
         }
     }
 }
+
+func TestParseHeatsEuskotren(t *testing.T) {
+
+	doc, err := os.Open("./html/fabrika_euskotren_2023.html")
+	if err != nil {
+            t.Error("Cannot open file", err)
+	}
+	tokenizer := html.NewTokenizer(doc)
+    expected := []Result{
+        {TeamName: "CR CABO DA CRUZ", HeatPosition:3, Time: "11:30,80", Ziabogak: []string{"05:55"}},
+        {TeamName: "DONOSTIA ARRAUN LAGUNAK", HeatPosition:2, Time:"10:48,98", Ziabogak: []string{"05:35"}},
+        {TeamName: "HIBAIKA JAMONES ANCIN", HeatPosition:2, Time:"11:25,96"},
+        {TeamName: "HONDARRIBIA BERTAKO IGOGAILUAK", HeatPosition:1, Time:"11:12,86"},
+        {TeamName: "NORTINDAL DONOSTIARRA UR KIROLAK", HeatPosition:1, Time:"10:44,90", Ziabogak: []string{"05:37"}},
+        {TeamName: "ORIO ORIALKI", HeatPosition:3, Time:"10:54,10"},
+        {TeamName: "SD TIRÁN PEREIRA", HeatPosition:4, Time:"11:50,24"},
+        {TeamName: "TOLOSALDEA ARRAUN KLUBA", HeatPosition:4, Time:"11:12,46"},
+    }
+    
+    results := parse_heats(tokenizer)
+    if len(results) != 8 {
+        t.Errorf("%d != %d\n", len(results), 8)
+    }
+
+    sort.Sort(ByName(results))
+    for i, result := range(results) {
+        if expected[i].HeatPosition != result.HeatPosition {
+            t.Errorf("Heat position %d is not %d\n", expected[i].HeatPosition, result.HeatPosition)
+        }
+        if i < 2 {
+            if expected[i].Ziabogak[0] != result.Ziabogak[0] {
+                t.Errorf("Ziaboga %s is not %s\n", expected[i].Ziabogak[0], result.Ziabogak[0])
+            }
+        }
+    }
+}
