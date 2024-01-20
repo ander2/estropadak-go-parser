@@ -23,3 +23,18 @@ $ cat html/zarautz_act_2023_1.html | go run .
 11 ONDARROA CIKAUTXO               [05:11 10:32 16:05] 21:29,16
 12 KAIKU BEREZ GALANTA             [05:13 10:39 16:11] 21:31,20
 ```
+
+Euskotren estropadak are also supported:
+
+```
+$ cat html/fabrika_euskotren_2023.html | ./estropadak-parser
+  VII Bandera Fabrika (08-07-2023)
+1 NORTINDAL DONOSTIARRA UR KIROLAK [05:37  ] 10:44,90
+2 DONOSTIA ARRAUN LAGUNAK          [05:35  ] 10:48,98
+3 ORIO ORIALKI                     [05:39  ] 10:54,10
+4 TOLOSALDEA ARRAUN KLUBA          [05:46  ] 11:12,46
+5 HONDARRIBIA BERTAKO IGOGAILUAK   [05:48  ] 11:12,86
+6 HIBAIKA JAMONES ANCIN            [05:53  ] 11:25,96
+7 CR CABO DA CRUZ                  [05:55  ] 11:30,80
+8 SD TIRÁN PEREIRA                 [06:03  ] 11:50,24
+```
