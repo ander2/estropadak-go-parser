@@ -1,4 +1,4 @@
-package main
+package estropadakParser
 // ByPosition implements sort.Interface for []Result based on
 // the Position field.
 type ByPosition []Result

@@ -1,5 +1,15 @@
 package estropadakParser
 
+import (
+	"fmt"
+	"os"
+	"io"
+	"strconv"
+	"strings"
+
+	"golang.org/x/net/html"
+)
+
 func parse_title(t *html.Tokenizer) string {
 	var title string
 	var next_token html.TokenType
