@@ -1,73 +1,81 @@
 package estropadakParser
 
 import (
-    "testing"
-    "os"
-    // "sort"
-)
-import "golang.org/x/net/html"
+	"os"
+	"sort"
+	"testing"
 
+	"golang.org/x/net/html"
+)
 
 func TestParseARCTitle(t *testing.T) {
 
-    var title string
+	var title string
 	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
 	expected := "XVII. HONDARRIBIKO ARRANTZALEEN KOFRADIKO BANDERA"
 	tokenizer := html.NewTokenizer(doc)
-    
-    title = arc_parse_title(tokenizer)
-    if title != expected {
-        t.Errorf("%s != %s\n", title, expected)
-    }
+
+	title = arc_parse_title(tokenizer)
+	if title != expected {
+		t.Errorf("%s != %s\n", title, expected)
+	}
 
 }
 
+func TestParseARCHeats(t *testing.T) {
 
-// func TestParseHeats(t *testing.T) {
+	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
+	if err != nil {
+		t.Error("Cannot open file", err)
+	}
+	tokenizer := html.NewTokenizer(doc)
 
-// 	doc, err := os.Open("./html/zarautz_act_2023_1.html")
-// 	if err != nil {
-//             t.Error("Cannot open file", err)
-// 	}
-// 	tokenizer := html.NewTokenizer(doc)
+	expected := []Result{
+		{Heat: 3, TeamName: "Arkote A.  T.", HeatPosition: 2, Time: "20:59,16", Ziabogak: []string{"5:17", "10:20", "16:06"}},
+		{Heat: 1, TeamName: "Busturialdea", HeatPosition: 2, Time: "21:44,97", Ziabogak: []string{"5:29", "10:39", "16:35"}},
+		{Heat: 2, TeamName: "Camargo", HeatPosition: 2, Time: "21:15,56"},
+		{Heat: 1, TeamName: "Castro Canteras de Santullan", HeatPosition: 4, Time: "22:09,71"},
+		{Heat: 1, TeamName: "Deusto-bilbao", HeatPosition: 3, Time: "22:05,25"},
+		{Heat: 1, TeamName: "Hondarribia", HeatPosition: 1, Time: "21:37,17"},
+		{Heat: 3, TeamName: "Lapurdi Antton Bilbao", HeatPosition: 1, Time: "20:47,50"},
+		{Heat: 2, TeamName: "Pedreña", HeatPosition: 3, Time: "21:18,59"},
+		{Heat: 3, TeamName: "San Juan CMO Valves", HeatPosition: 4, Time: "21:19,65"},
+		{Heat: 3, TeamName: "Sanpedrotarra A.e.", HeatPosition: 3, Time: "21:00,32"},
+		{Heat: 2, TeamName: "Zarautz Gesalaga Okelan", HeatPosition: 1, Time: "21:10,00"},
+		{Heat: 2, TeamName: "Zumaiako Telmo Deun A.k.e..", HeatPosition: 4, Time: "21:22,77"},
+	}
 
-//     expected := []Result{
-//         {TeamName: "AMENABAR DONOSTIARRA UR KIROLAK", HeatPosition:2, Ziabogak: []string{"04:53", "10:03", "15:27"}},
-//         {TeamName: "BERMEO URDAIBAI", HeatPosition:1, Time:"20:12,14", Ziabogak: []string{"04:55", "09:57", "15:16"}},
-//         {TeamName: "CR CABO DA CRUZ", HeatPosition:3, Time:"21:07,90"},
-//         {TeamName: "GETARIA", HeatPosition:2, Time:"20:49,76"},
-//         {TeamName: "HONDARRIBIA", HeatPosition:3, Time:"20:32,92"},
-//         {TeamName: "ITSASOKO AMA SANTURTZI", HeatPosition:1, Time:"21:16,36"},
-//         {TeamName: "KAIKU BEREZ GALANTA", HeatPosition:4, Time: "21:31,20"},
-//         {TeamName: "LEKITTARRA ELECNOR", HeatPosition:4, Time:"21:11,08"},
-//         {TeamName: "ONDARROA CIKAUTXO", HeatPosition:3, Time: "21:29,16"},
-//         {TeamName: "ORIO ORIALKI", HeatPosition:1, Time:"20:20,30"},
-//         {TeamName: "SAMERTOLAMEU FANDICOSTA", HeatPosition:2, Time: "21:22,44"},
-//         {TeamName: "ZIERBENA BAHIAS DE BIZKAIA", HeatPosition:4, Time:"20:38,46"},
-//     }
-    
-//     results := parse_heats(tokenizer)
-//     if len(results) != 12 {
-//         t.Errorf("%d != %d\n", len(results), 12)
-//     }
+	results := arc_parse_heats(tokenizer)
+	if len(results) != 12 {
+		t.Errorf("%d != %d\n", len(results), 12)
+	}
 
-//     sort.Sort(ByName(results))
-//     for i, result := range(results) {
-//         if expected[i].HeatPosition != result.HeatPosition {
-//             t.Errorf("Heat position %d is not %d\n", expected[i].HeatPosition, result.HeatPosition)
-//         }
-//         if i < 2 {
-//             for j := 0; j<3; j+=1 {
-//                 if expected[i].Ziabogak[j] != result.Ziabogak[j] {
-//                     t.Errorf("Ziaboga %s is not %s\n", expected[i].Ziabogak[j], result.Ziabogak[j])
-//                 }
-//             }
-//         }
-//     }
-// }
+	sort.Sort(ByName(results))
+	for i, result := range results {
+		if expected[i].TeamName != result.TeamName {
+			t.Errorf("Team %s is not %s\n", expected[i].TeamName, result.TeamName)
+		}
+
+		if expected[i].Heat != result.Heat {
+			t.Errorf("Team %s heat %d is not %d\n", result.TeamName, expected[i].Heat, result.Heat)
+		}
+
+		if expected[i].HeatPosition != result.HeatPosition {
+			t.Errorf("Heat position %d is not %d\n", expected[i].HeatPosition, result.HeatPosition)
+		}
+
+		if i < 2 {
+			for j := 0; j < 3; j += 1 {
+				if expected[i].Ziabogak[j] != result.Ziabogak[j] {
+					t.Errorf("Ziaboga %s is not %s\n", expected[i].Ziabogak[j], result.Ziabogak[j])
+				}
+			}
+		}
+	}
+}
 
 // func TestParseHeatsEuskotren(t *testing.T) {
 
@@ -86,7 +94,7 @@ func TestParseARCTitle(t *testing.T) {
 //         {TeamName: "SD TIRÁN PEREIRA", HeatPosition:4, Time:"11:50,24"},
 //         {TeamName: "TOLOSALDEA ARRAUN KLUBA", HeatPosition:4, Time:"11:12,46"},
 //     }
-    
+
 //     results := parse_heats(tokenizer)
 //     if len(results) != 8 {
 //         t.Errorf("%d != %d\n", len(results), 8)
