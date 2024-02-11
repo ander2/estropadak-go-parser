@@ -227,6 +227,7 @@ func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 
 	var title string
 	var results []Result
+	var heat_results []Result
 	tokenizer := html.NewTokenizer(doc)
 	for tokenizer.Err() != io.EOF {
 		if title == "" {
@@ -236,16 +237,18 @@ func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 			}
 		}
 		if len(estropada.Results) == 0 {
-			results = arc_parse_heats(tokenizer)
+			results = arc_parse_results(tokenizer)
 			if len(results) > 0 {
 				estropada.Results = results
 			}
 		}
-		general_results := parse_results(tokenizer)
-		for _, res := range general_results  {
-			for i, part_res := range estropada.Results  {
-				if part_res.TeamName == res.TeamName {
-					estropada.Results[i].Position = res.Position
+		if len(heat_results) == 0 {
+			heat_results = arc_parse_heats(tokenizer)
+			for _, res := range heat_results  {
+				for i, part_res := range estropada.Results  {
+					if part_res.TeamName == res.TeamName {
+						estropada.Results[i].Ziabogak = res.Ziabogak
+					}
 				}
 			}
 		}
