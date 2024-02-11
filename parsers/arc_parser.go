@@ -123,7 +123,6 @@ func arc_parse_heats(t *html.Tokenizer) []Result {
 					sort.Sort(ByTime(results))
 					for i, result := range results {
 						if result.Heat == heat_counter {
-							fmt.Printf("%d %s %s\n", heat_counter, result.TeamName, result.Time)
 							results[i].HeatPosition = pos
 							pos += 1
 						}
@@ -154,6 +153,93 @@ func arc_parse_heats(t *html.Tokenizer) []Result {
 	return results
 }
 
+func arc_parse_results(t *html.Tokenizer) []Result {
+	var col_counter int
+	var aux_text string
+	var next_token html.TokenType
+	var result Result
+	var results []Result
+	var result_parsed, on_record bool
+	section_end := false
+
+	for section_end == false {
+		tag, has_attrs := t.TagName()
+		if t.Token().Type == html.StartTagToken && string(tag) == "table" && has_attrs {
+			if attr_has_value(*t, "class", "tab-item clasificacion clasificacion-regata grid_12 alpha") {
+				next_token = t.Next()
+				for result_parsed == false {
+					tag, has_attrs = t.TagName()
+
+					if next_token == html.StartTagToken && string(tag) == "tbody" {
+						on_record = true
+					}
+
+					if next_token == html.StartTagToken && string(tag) == "tr" && on_record {
+						col_counter = 0
+						result = Result{}
+					}
+
+					if next_token == html.StartTagToken && string(tag) == "th" {
+						aux_text = ""
+					}
+
+					if next_token == html.StartTagToken && string(tag) == "td" {
+						col_counter +=1
+						aux_text = ""
+
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "th" && on_record {
+						position, err := strconv.Atoi(strings.TrimRight(aux_text, "º")) 
+						if err == nil {
+							result.Position = position
+						} else {
+							result.Position = 12
+						}
+						aux_text = ""
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "td" {
+						if col_counter == 1 {
+							team_name := result.TeamName + aux_text
+							result.TeamName = strings.TrimSpace(team_name)
+						}
+						if col_counter == 2 {
+							time := result.Time + aux_text
+							result.Time = strings.TrimSpace(time)
+						}
+						if col_counter == 3 {
+							points, err := strconv.Atoi(aux_text) 
+							if err != nil {
+								result.Points = points
+							}
+						}
+
+					}
+
+					if next_token == html.TextToken && on_record{
+						aux_text += string(t.Text())
+
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "tr" && on_record{
+						results = append(results, result)
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "tbody" {
+						result_parsed = true
+						on_record = false
+						section_end = true
+					}
+					next_token = t.Next()
+				}
+			}
+		} 
+		next_token = t.Next()
+	}
+	return results
+}
+
 func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, error) {
 
 	var title string
@@ -172,15 +258,14 @@ func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 				estropada.Results = results
 			}
 		}
-		// general_results := parse_results(tokenizer)
-		// for _, res := range general_results  {
-		// 	for i, part_res := range estropada.Results  {
-		// 		if part_res.TeamName == res.TeamName {
-		// 			estropada.Results[i].Position = res.Position
-		// 			estropada.Results[i].Time = res.Time
-		// 		}
-		// 	}
-		// }
+		general_results := parse_results(tokenizer)
+		for _, res := range general_results  {
+			for i, part_res := range estropada.Results  {
+				if part_res.TeamName == res.TeamName {
+					estropada.Results[i].Position = res.Position
+				}
+			}
+		}
 		tokenizer.Next()
 	}
 	return "ok", nil
