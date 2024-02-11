@@ -32,9 +32,7 @@ func arc_parse_title(t *html.Tokenizer) string {
 func arc_parse_heats(t *html.Tokenizer) []Result {
 	var col_counter int
 	var heat_counter int
-	// var pos_text string
 	var aux_text string
-	// var aux_name []byte
 	var result Result
 	var results []Result
 	var result_parsed, on_record bool
@@ -46,14 +44,8 @@ func arc_parse_heats(t *html.Tokenizer) []Result {
 	for section_end == false {
 		tag, has_attrs := t.TagName()
 		if t.Token().Type == html.StartTagToken && string(tag) == "table" && has_attrs {
-			for {
-				attr, val, more_attrs := t.TagAttr()
-				if string(attr) == "class" && string(val) == "clasificacion tanda" {
-					on_table = true
-				}
-				if !more_attrs {
-					break
-				}
+			if attr_has_value(*t, "class", "clasificacion tanda") {
+				on_table = true
 			}
 		}
 
@@ -134,17 +126,8 @@ func arc_parse_heats(t *html.Tokenizer) []Result {
 		}
 
 		if t.Token().Type == html.StartTagToken && string(tag) == "h2" && has_attrs {
-			if has_attrs {
-				for {
-					attr, val, more_attrs := t.TagAttr()
-					if string(attr) == "class" && string(val) == "volver-arriba" {
-						section_end = true
-						break
-					}
-					if !more_attrs {
-						break
-					}
-				}
+			if attr_has_value(*t, "class", "volver-arriba") {
+				section_end = true
 			}
 		}
 		next_token = t.Next()
