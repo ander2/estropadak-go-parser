@@ -19,6 +19,7 @@ func main() {
 
 	typePtr := flag.String("t", "ACT", "Parser type: ACT or ARC")
 	urlPtr := flag.String("u", "", "Content URL: http://www.liga-arc.com/es/regata/489/xvii.-hondarribiko-arrantzaleen-kofradiko-bandera")
+	formatPtr := flag.String("f", "", "Output format: text or json")
 	flag.Parse()
 
 	estropada = estropadakParser.Estropada{}
@@ -49,6 +50,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Cannot parse doc %s", err)
 		os.Exit(1)
 	}
+
 	sort.Sort(estropadakParser.ByPosition(estropada.Results))
-	formatters.Format_result_text(estropada)
+	if *formatPtr == "json" {
+		formatters.Format_result_json(estropada)
+	} else {
+		formatters.Format_result_text(estropada)
+	}
 }
