@@ -1,11 +1,10 @@
 # Estropadak Go Parser
 
-Simple Euskolabel liga estropada parser built to learn and test Go lang.
+Simple estropada parser (Euskolabel, Euskotrenm, ARC1 and ARC2) built to learn and test Go lang.
 
 ## Current usage
 
-Just parses from Stdin an HTML containing a result file's content and returns the final
-classification.
+Currently it just parses an HTML from Stdin containing a result file content and returns the final classification as text table.
 
 ```
 $ cat html/zarautz_act_2023_1.html | go run .
@@ -27,7 +26,7 @@ $ cat html/zarautz_act_2023_1.html | go run .
 Euskotren estropadak are also supported:
 
 ```
-$ cat html/fabrika_euskotren_2023.html | ./estropadak-parser
+$ cat html/fabrika_euskotren_2023.html | ./estropadakparser
   VII Bandera Fabrika (08-07-2023)
 1 NORTINDAL DONOSTIARRA UR KIROLAK [05:37  ] 10:44,90
 2 DONOSTIA ARRAUN LAGUNAK          [05:35  ] 10:48,98
@@ -37,4 +36,23 @@ $ cat html/fabrika_euskotren_2023.html | ./estropadak-parser
 6 HIBAIKA JAMONES ANCIN            [05:53  ] 11:25,96
 7 CR CABO DA CRUZ                  [05:55  ] 11:30,80
 8 SD TIRÁN PEREIRA                 [06:03  ] 11:50,24
+```
+
+ARC1 estropadas example:
+
+```
+$ cat html/hondarribia_arc1_2023.html | ./estroapadakparser -t ARC
+   XVII. HONDARRIBIKO ARRANTZALEEN KOFRADIKO BANDERA
+1  Lapurdi Antton Bilbao        [5:16 10:18 15:58] 20:47,50
+2  Arkote A.  T.                [5:17 10:20 16:06] 20:59,16
+3  Sanpedrotarra A.e.           [5:19 10:16 15:59] 21:00,32
+4  Zarautz Gesalaga Okelan      [5:21 10:20 16:08] 21:10,00
+5  Camargo                      [5:25 10:31 16:20] 21:15,56
+6  Pedreña                      [5:22 10:26 16:13] 21:18,59
+7  San Juan CMO Valves          [5:24 10:30 16:17] 21:19,65
+8  Zumaiako Telmo Deun A.k.e..  [5:24 10:29 16:15] 21:22,77
+9  Hondarribia                  [5:24 10:34 16:28] 21:37,17
+10 Busturialdea                 [5:29 10:39 16:35] 21:44,97
+11 Deusto-bilbao                [5:32 10:52 16:51] 22:05,25
+12 Castro Canteras de Santullan [5:35 10:53 16:53] 22:09,71
 ```
