@@ -2,6 +2,7 @@ package formatters
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/go-yaml/yaml"
 	"estropadak.eus/estropadak-parser/pkg/parsers"
