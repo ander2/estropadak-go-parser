@@ -54,6 +54,8 @@ func main() {
 	sort.Sort(estropadakParser.ByPosition(estropada.Results))
 	if *formatPtr == "json" {
 		formatters.Format_result_json(estropada)
+	} else if *formatPtr == "yaml" {
+		formatters.Format_result_yaml(estropada)
 	} else {
 		formatters.Format_result_text(estropada)
 	}
