@@ -11,6 +11,8 @@ The `-t` flag specifies wich kind of parser (ACT or ARC) to use.
 ```
 $ ./estropadakparser -h
 Usage of estropadakparser:
+  -f string
+        Output format: text, yaml or json
   -t string
         Parser type: ACT or ARC (default "ACT")
   -u string
@@ -86,3 +88,70 @@ $ cat html/hondarribia_arc1_2023.html | ./estroapadakparser -t ARC
 11 Deusto-bilbao                [5:32 10:52 16:51] 22:05,25
 12 Castro Canteras de Santullan [5:35 10:53 16:53] 22:09,71
 ```
+
+### Returning JSON
+```
+$ ./estropadakparser -u "https://www.euskolabelliga.com/resultados/ver.php?id=es&r=1678275014" -t ACT -f json
+{
+  "Name": "XLVI. Zarauzko Ikurriña (J1) (19-08-2023)",
+  "Date": "",
+  "Location": "",
+  "Results": [
+    {
+      "TeamName": "BERMEO URDAIBAI",
+      "Position": 1,
+      "Points": 0,
+      "HeatPosition": 1,
+      "Heat": 0,
+      "Lane": 2,
+      "Time": "20:12,14",
+      "Ziabogak": [
+        "04:55",
+        "09:57",
+        "15:16"
+      ]
+    },
+    {
+      "TeamName": "ORIO ORIALKI",
+      "Position": 2,
+      "Points": 0,
+      "HeatPosition": 1,
+      "Heat": 0,
+      "Lane": 4,
+      "Time": "20:20,30",
+      "Ziabogak": [
+        "04:55",
+        "09:59",
+        "15:16"
+      ]
+    },
+    ...
+  ]
+}
+``` 
+
+### Returning YAML
+```
+$ ./estropadakparser -u "https://www.euskolabelliga.com/resultados/ver.php?id=es&r=1678275014" -t ACT -f yaml
+name: XLVI. Zarauzko Ikurriña (J1) (19-08-2023)
+date: ""
+location: ""
+results:
+- teamname: BERMEO URDAIBAI
+  position: 1
+  points: 0
+  heatposition: 1
+  heat: 0
+  lane: 2
+  time: 20:12,14
+  ziabogak:
+  - "04:55"
+  - "09:57"
+  - "15:16"
+- teamname: ORIO ORIALKI
+  position: 2
+  points: 0
+  heatposition: 1
+  heat: 0
+  lane: 4
+  ```
