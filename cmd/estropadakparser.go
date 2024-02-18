@@ -6,9 +6,9 @@ import (
 	"io"
 	"os"
 	"sort"
-	"text/tabwriter"
 
-	"estropadak.eus/estropadak-parser/parsers"
+	"estropadak.eus/estropadak-parser/pkg/parsers"
+	"estropadak.eus/estropadak-parser/pkg/formatters"
 )
 
 func main() {
@@ -32,15 +32,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Cannot parse doc %s", err)
 		os.Exit(1)
 	}
-	format_result(estropada)
-}
-
-func format_result(estropada estropadakParser.Estropada) {
 	sort.Sort(estropadakParser.ByPosition(estropada.Results))
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-	fmt.Fprintf(w, "\t%s\n", estropada.Name)
-	for _, res := range estropada.Results {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", res.Position, res.TeamName, res.Ziabogak, res.Time)
-	}
-	w.Flush()
+	formatters.Format_result_text(estropada)
 }
