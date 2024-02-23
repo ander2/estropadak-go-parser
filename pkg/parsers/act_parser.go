@@ -2,8 +2,8 @@ package estropadakParser
 
 import (
 	"fmt"
-	"os"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 
@@ -13,7 +13,7 @@ import (
 func parse_title(t *html.Tokenizer) string {
 	var title string
 	var next_token html.TokenType
-	for t.Err() != io.EOF && title == ""{
+	for t.Err() != io.EOF && title == "" {
 		tag, _ := t.TagName()
 		if t.Token().Type == html.StartTagToken && string(tag) == "h3" {
 			for next_token != html.EndTagToken {
@@ -24,8 +24,43 @@ func parse_title(t *html.Tokenizer) string {
 			}
 		}
 		next_token = t.Next()
-    }
+	}
 	return title
+}
+
+func parse_location(t *html.Tokenizer) string {
+	var next_token html.TokenType
+	location := ""
+	var on_table, on_body bool
+	col := 0
+	for t.Err() != io.EOF && location == "" {
+		tag, has_attrs := t.TagName()
+		if next_token == html.StartTagToken && string(tag) == "table" && has_attrs {
+			if attr_has_value(*t, "summary", "Regata Puntuable") {
+				on_table = true
+			}
+		}
+		if next_token == html.EndTagToken && string(tag) == "table" {
+			on_table = false
+		}
+		if next_token == html.StartTagToken && string(tag) == "tbody" && on_table {
+			on_body = true
+			col = 0
+		}
+		if next_token == html.EndTagToken && string(tag) == "tbody" && on_table {
+			on_body = false
+		}
+		if next_token == html.StartTagToken && string(tag) == "td" && on_body {
+			col += 1
+		}
+
+		if next_token == html.TextToken && on_body && col == 2 {
+			location = string(t.Text())
+			location = strings.TrimSpace(location)
+		}
+		next_token = t.Next()
+	}
+	return location
 }
 
 func parse_heats(t *html.Tokenizer) []Result {
@@ -60,7 +95,7 @@ func parse_heats(t *html.Tokenizer) []Result {
 						}
 
 						if next_token == html.StartTagToken && string(tag) == "td" {
-							col_counter +=1
+							col_counter += 1
 						}
 
 						if next_token == html.EndTagToken && string(tag) == "td" {
@@ -96,11 +131,11 @@ func parse_heats(t *html.Tokenizer) []Result {
 							aux_text = ""
 						}
 
-						if next_token == html.TextToken && on_record{
+						if next_token == html.TextToken && on_record {
 							aux_text += string(t.Text())
 						}
 
-						if next_token == html.EndTagToken && string(tag) == "tr" && on_record{
+						if next_token == html.EndTagToken && string(tag) == "tr" && on_record {
 							results = append(results, result)
 						}
 
@@ -149,7 +184,7 @@ func parse_results(t *html.Tokenizer) []Result {
 					}
 
 					if next_token == html.StartTagToken && string(tag) == "td" {
-						col_counter +=1
+						col_counter += 1
 					}
 
 					if next_token == html.EndTagToken && string(tag) == "td" {
@@ -174,7 +209,7 @@ func parse_results(t *html.Tokenizer) []Result {
 						aux_text = ""
 					}
 
-					if next_token == html.TextToken && on_record{
+					if next_token == html.TextToken && on_record {
 						aux_text += string(t.Text())
 						// aux_position += aux_text
 
@@ -185,7 +220,7 @@ func parse_results(t *html.Tokenizer) []Result {
 					// 	aux_name = aux_name
 					// }
 
-					if next_token == html.EndTagToken && string(tag) == "tr" && on_record{
+					if next_token == html.EndTagToken && string(tag) == "tr" && on_record {
 						results = append(results, result)
 					}
 
@@ -203,36 +238,22 @@ func parse_results(t *html.Tokenizer) []Result {
 
 func Act_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, error) {
 
-	var title string
-	var results []Result
 	tokenizer := html.NewTokenizer(doc)
+
+	estropada.Name = parse_title(tokenizer)
+	estropada.Location = parse_location(tokenizer)
+	estropada.Results = parse_heats(tokenizer)
+
 	for tokenizer.Err() != io.EOF {
-		if title == "" {
-			title = parse_title(tokenizer)
-			if title != "" {
-				estropada.Name = title
-			}
-		}
-		if len(estropada.Results) == 0 {
-			results = parse_heats(tokenizer)
-			if len(results) > 0 {
-				estropada.Results = results
-			}
-		}
-		// if len(estropada.Results) == 0 {
 		general_results := parse_results(tokenizer)
-		for _, res := range general_results  {
-			for i, part_res := range estropada.Results  {
+		for _, res := range general_results {
+			for i, part_res := range estropada.Results {
 				if part_res.TeamName == res.TeamName {
 					estropada.Results[i].Position = res.Position
 					estropada.Results[i].Time = res.Time
 				}
 			}
 		}
-		// 	if len(results) > 0 {
-		// 		estropada.Results = results
-		// 	}
-		// }
 		tokenizer.Next()
 	}
 	return "ok", nil
