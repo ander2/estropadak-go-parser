@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -26,6 +27,17 @@ func parse_title(t *html.Tokenizer) string {
 		next_token = t.Next()
 	}
 	return title
+}
+
+func parse_date(t string) (date string) {
+	re := regexp.MustCompile(`\(\d+-\d+-\d+\)`)
+	m := re.Find([]byte(t))
+	if m != nil {
+		date = string(m)
+		date = strings.TrimRight(date, ")")
+		date = strings.TrimLeft(date, "(")
+	}
+	return
 }
 
 func parse_location(t *html.Tokenizer) string {
@@ -241,6 +253,8 @@ func Act_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 	tokenizer := html.NewTokenizer(doc)
 
 	estropada.Name = parse_title(tokenizer)
+	estropada.Date = parse_date(estropada.Name)
+	estropada.Name = strings.Replace(estropada.Name, "("+estropada.Date+")", "", 1)
 	estropada.Location = parse_location(tokenizer)
 	estropada.Results = parse_heats(tokenizer)
 

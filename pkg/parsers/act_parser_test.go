@@ -40,6 +40,17 @@ func TestParseLocation(t *testing.T) {
 
 }
 
+func TestParseDate(t *testing.T) {
+
+	expected := "19-08-2023"
+
+	date := parse_date("XLVI. Zarauzko Ikurri&ntilde;a (J1) (19-08-2023)")
+	if date != expected {
+		t.Errorf("%s != %s\n", date, expected)
+	}
+
+}
+
 func TestParseHeats(t *testing.T) {
 
 	doc, err := os.Open("./html/zarautz_act_2023_1.html")
