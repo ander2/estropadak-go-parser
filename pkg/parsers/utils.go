@@ -1,5 +1,8 @@
 package estropadakParser
+
 import (
+	"strings"
+
 	"golang.org/x/net/html"
 )
 
@@ -31,7 +34,7 @@ func attr_has_value(t html.Tokenizer, attrName string, value string) bool {
 	result := false
 	for {
 		attr, val, more_attrs := t.TagAttr()
-		if string(attr) == attrName && string(val) == value {
+		if string(attr) == attrName && strings.Contains(string(val), value) {
 			result = true
 			break
 		}

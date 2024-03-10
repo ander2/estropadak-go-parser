@@ -293,3 +293,56 @@ func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 	}
 	return "ok", nil
 }
+
+func Arc_parse_calendar(doc io.Reader) ([]Estropada, error) {
+	var estropadak []Estropada
+	var estropada Estropada
+	var next_token html.TokenType
+	t := html.NewTokenizer(doc)
+	var calendar_parsed, on_record bool
+	var col_counter int
+	var aux_text string
+
+	for t.Err() != io.EOF && !calendar_parsed {
+		tag, has_attrs := t.TagName()
+		if t.Token().Type == html.StartTagToken && string(tag) == "tr" && has_attrs {
+			if attr_has_value(*t, "class", "tab-item") {
+				on_record = true
+				estropada = Estropada{}
+			}
+		}
+
+		if next_token == html.StartTagToken && string(tag) == "td" && on_record {
+			col_counter += 1
+		}
+
+		if next_token == html.EndTagToken && string(tag) == "td" && on_record {
+			if col_counter == 1 {
+				estropada.Date = strings.TrimSpace(aux_text)
+			}
+
+			if col_counter == 2 {
+				estropada.Name = strings.TrimSpace(aux_text)
+			}
+
+			aux_text = ""
+		}
+
+		if next_token == html.EndTagToken && string(tag) == "tr" && on_record {
+			estropadak = append(estropadak, estropada)
+			col_counter = 0
+			aux_text = ""
+			on_record = false
+		}
+
+		if next_token == html.EndTagToken && string(tag) == "tbody" && on_record {
+			calendar_parsed = true
+		}
+
+		if next_token == html.TextToken && on_record {
+			aux_text += string(t.Raw())
+		}
+		next_token = t.Next()
+	}
+	return estropadak, nil
+}

@@ -8,17 +8,19 @@ import (
 	"os"
 	"sort"
 
-	"estropadak.eus/estropadak-parser/pkg/parsers"
 	"estropadak.eus/estropadak-parser/pkg/formatters"
+	estropadakParser "estropadak.eus/estropadak-parser/pkg/parsers"
 )
 
 func main() {
 	var estropada estropadakParser.Estropada
+	var estropadak []estropadakParser.Estropada
 	var err error
 	var reader io.Reader
 
 	typePtr := flag.String("t", "ACT", "Parser type: ACT or ARC")
 	urlPtr := flag.String("u", "", "Content URL: http://www.liga-arc.com/es/regata/489/xvii.-hondarribiko-arrantzaleen-kofradiko-bandera")
+	calPtr := flag.Bool("c", false, "Content is calendar. Default false. Parses a page containing a calendar URL")
 	formatPtr := flag.String("f", "", "Output format: text, yaml or json")
 	flag.Parse()
 
@@ -39,9 +41,17 @@ func main() {
 		reader = resp.Body
 	}
 	if *typePtr == "ACT" {
-		_, err = estropadakParser.Act_parse_estropadak_doc(&estropada, reader)
+		if *calPtr {
+			estropadak, err = estropadakParser.Act_parse_calendar(reader)
+		} else {
+			_, err = estropadakParser.Act_parse_estropadak_doc(&estropada, reader)
+		}
 	} else if *typePtr == "ARC" {
-		_, err = estropadakParser.Arc_parse_estropadak_doc(&estropada, reader)
+		if *calPtr {
+			estropadak, err = estropadakParser.Arc_parse_calendar(reader)
+		} else {
+			_, err = estropadakParser.Arc_parse_estropadak_doc(&estropada, reader)
+		}
 	} else {
 		fmt.Fprintln(os.Stderr, "Invalid parser type: select ACT or ARC")
 		os.Exit(1)
@@ -57,6 +67,10 @@ func main() {
 	} else if *formatPtr == "yaml" {
 		formatters.Format_result_yaml(estropada)
 	} else {
-		formatters.Format_result_text(estropada)
+		if *calPtr {
+			formatters.Format_calendar_text(estropadak)
+		} else {
+			formatters.Format_result_text(estropada)
+		}
 	}
 }

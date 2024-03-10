@@ -11,7 +11,7 @@ import (
 func TestParseTitle(t *testing.T) {
 
 	var title string
-	doc, err := os.Open("./html/zarautz_act_2023_1.html")
+	doc, err := os.Open("./test_data/zarautz_act_2023_1.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -26,7 +26,7 @@ func TestParseTitle(t *testing.T) {
 }
 
 func TestParseLocation(t *testing.T) {
-	doc, err := os.Open("./html/zarautz_act_2023_1.html")
+	doc, err := os.Open("./test_data/zarautz_act_2023_1.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -53,7 +53,7 @@ func TestParseDate(t *testing.T) {
 
 func TestParseHeats(t *testing.T) {
 
-	doc, err := os.Open("./html/zarautz_act_2023_1.html")
+	doc, err := os.Open("./test_data/zarautz_act_2023_1.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -96,7 +96,7 @@ func TestParseHeats(t *testing.T) {
 
 func TestParseHeatsEuskotren(t *testing.T) {
 
-	doc, err := os.Open("./html/fabrika_euskotren_2023.html")
+	doc, err := os.Open("./test_data/fabrika_euskotren_2023.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -128,4 +128,47 @@ func TestParseHeatsEuskotren(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestActCalendar(t *testing.T) {
+	doc, err := os.Open("./test_data/act_2023.html")
+	if err != nil {
+		t.Error("Cannot open file", err)
+	}
+	estropadak, _ := Act_parse_calendar(doc)
+	expected_names := [...]string{
+		"VII Bandeira Cidade da Coruña (J1)",
+		"VII Bandeira Cidade da Coruña (J2)",
+		"XV Bandera Fabrika",
+		"XL. Bandera Petronor",
+		"XIV. Bilboko Bandera - Bandera de Bilbao",
+		"Orioko XXXIII. Estropada - Orio Kanpina XI. Bandera",
+		"XXII Bandera Ayuntamiento de Sestao. Centenario Kaiku",
+		"XI Bandera CaixaBank",
+		"Getxoko Estropaden XLV. Ikurriña - J.A. Agirre Lehendakariaren XIX. Omenaldia",
+		"Santurtziko XLIV. Ikurriña",
+		"Hondarribiko XXXVI. Bandera / Mapfre Sari Nagusia",
+		"XXXVIII. El Correo Ikurriña - Kutxabank SN - Lekeitioko Udala",
+		"IX Bandeira Illa Do Samertolameu - Concello de Moaña",
+		"XXXIII Bandeira Concello de Boiro",
+		"XLVI. Zarauzko Ikurriña (J1)",
+		"XLVI. Zarauzko Ikurriña (J2)",
+		"XXXIX. Ondarroako Bandera-Cikautxo SN",
+		"XIV. Getariako Ikurriña",
+		"Play-off J1",
+		"Bermeo Hiriko XLI Ikurriña-BTWC Bermeo Tuna World Capital SN",
+		"Play-off J2",
+		"LIII GP - XLIX Bandera El Corte Inglés- Ayuntamiento de Portugalete",
+	}
+	if len(estropadak) != 22 {
+		t.Errorf("Expected %d estropada, got %d", 22, len(estropadak))
+	}
+
+	for i, name := range expected_names {
+		if estropadak[i].Name != name {
+			t.Errorf("Expected %s for estropada, got %s", name, estropadak[i].Name)
+		}
+
+	}
+
 }

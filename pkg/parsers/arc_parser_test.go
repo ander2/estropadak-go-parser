@@ -11,7 +11,7 @@ import (
 func TestParseARCTitle(t *testing.T) {
 
 	var title string
-	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
+	doc, err := os.Open("./test_data/hondarribia_arc1_2023.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -26,7 +26,7 @@ func TestParseARCTitle(t *testing.T) {
 }
 
 func TestParseARCDateLocation(t *testing.T) {
-	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
+	doc, err := os.Open("./test_data/hondarribia_arc1_2023.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -44,7 +44,7 @@ func TestParseARCDateLocation(t *testing.T) {
 
 func TestParseARCHeats(t *testing.T) {
 
-	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
+	doc, err := os.Open("./test_data/hondarribia_arc1_2023.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -96,7 +96,7 @@ func TestParseARCHeats(t *testing.T) {
 
 func TestParseARCResult(t *testing.T) {
 
-	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
+	doc, err := os.Open("./test_data/hondarribia_arc1_2023.html")
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
@@ -128,4 +128,55 @@ func TestParseARCResult(t *testing.T) {
 			t.Errorf("Team %s position %d is not %d\n", result.TeamName, expected[i].Position, result.Position)
 		}
 	}
+}
+
+func TestArcCalendar(t *testing.T) {
+	COUNT := 27
+	doc, err := os.Open("./test_data/arc_2023.html")
+	if err != nil {
+		t.Error("Cannot open file", err)
+	}
+
+	expected_names := [...]string{
+		"XXXI. Donibane Ziburukonestropada- ETXEBAT sari nagusia",
+		"XIII. KEPA DEUN ARRANTZALEEN KOFRADIA IKURRIÑA",
+		"XXXV. ELANTXOBEKO TRAINERU ESTROPADA",
+		"Mutrikuko VII. Yurrita group bandera",
+		"Mundakako Onura homes XX. Ikurriña",
+		"II. Bandera FEGEMU",
+		"II: CMO Valves Bandera",
+		"XIII. Bandera Kirol Txartela",
+		"Zumaiako XXXVIII. Ikurriña",
+		"ORIO KANPINA V. BANDERA",
+		"XVIII. Bandera Ayto. Marina de Cudeyo . Gran premio Dynasol",
+		"XLI. Bandera Noble Villa de Portugalete",
+		"Plentziako XXXIV. Ikurriña",
+		"XXIX Bandera Real Astillero de Guarnizo",
+		"XXXI. Bandera ayto. Camargo. I. Memorial Fernando López Lejardi",
+		"GOIMEK SARI NAGUSIA",
+		"HONDARRIBIA ARRAUN ELKARTEA BANDERA",
+		"XVII. HONDARRIBIKO ARRANTZALEEN KOFRADIKO BANDERA",
+		"XXXVIII. Pasaiako Ikurriña",
+		"Errenteriako Hiria X. Ikurriña",
+		"LI. Bandera Ciudad de Castro Urdiales",
+		"Zarauzko arraun elkartearen XIV. Ikurriña",
+		"Ikurriña Bilbao",
+		"XLV. Ikurriña Villa Bilbao",
+		"XXIX. Bandera Ría del Asón",
+		"Colindres. ARC Playoff I / XXIX. Bandera Ria del Asón",
+		"Lutxana. ARC Playoff II",
+	}
+
+	estropadak, _ := Arc_parse_calendar(doc)
+	if len(estropadak) != COUNT {
+		t.Errorf("Expected %d estropada, got %d", COUNT, len(estropadak))
+	}
+
+	for i, name := range expected_names {
+		if estropadak[i].Name != name {
+			t.Errorf("Expected '%s' for estropada, got '%s'", name, estropadak[i].Name)
+		}
+
+	}
+
 }

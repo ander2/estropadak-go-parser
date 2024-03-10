@@ -272,3 +272,72 @@ func Act_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 	}
 	return "ok", nil
 }
+
+func Act_parse_calendar(doc io.Reader) ([]Estropada, error) {
+
+	var estropadak []Estropada
+	var estropada Estropada
+	var next_token html.TokenType
+	t := html.NewTokenizer(doc)
+	var calendar_parsed, on_record bool
+	var col_counter int
+	var aux_text string
+
+	for t.Err() != io.EOF {
+		// tokenizer.Next()
+		tag, has_attrs := t.TagName()
+		if t.Token().Type == html.StartTagToken && string(tag) == "table" && has_attrs {
+			if attr_has_value(*t, "summary", "Resultados por regata") {
+				next_token = t.Next()
+				for !calendar_parsed {
+					tag, _ = t.TagName()
+
+					if next_token == html.StartTagToken && string(tag) == "tbody" {
+						on_record = true
+					}
+
+					if next_token == html.StartTagToken && string(tag) == "tr" && on_record {
+						col_counter = 0
+						estropada = Estropada{}
+					}
+
+					if next_token == html.StartTagToken && on_record && string(tag) == "td" {
+						col_counter += 1
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "td" {
+						if col_counter == 2 {
+							estropada.Name = strings.TrimSpace(aux_text)
+						}
+
+						if col_counter == 3 {
+							estropada.Location = strings.TrimSpace(aux_text)
+						}
+
+						if col_counter == 4 {
+							estropada.Date = strings.TrimSpace(aux_text)
+						}
+						aux_text = ""
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "tr" && on_record {
+						estropadak = append(estropadak, estropada)
+					}
+
+					if next_token == html.EndTagToken && string(tag) == "tbody" {
+						on_record = false
+						calendar_parsed = true
+					}
+
+					if next_token == html.TextToken && on_record {
+						aux_text += string(t.Text())
+					}
+
+					next_token = t.Next()
+				}
+			}
+		}
+		next_token = t.Next()
+	}
+	return estropadak, nil
+}
