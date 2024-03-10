@@ -29,6 +29,43 @@ func arc_parse_title(t *html.Tokenizer) string {
 	return title
 }
 
+func arc_parse_date_location(t *html.Tokenizer) (string, string) {
+	var date, location string
+	var on_record = false
+	var on_tag = false
+	var col = 0
+	var next_token html.TokenType
+	for t.Err() != io.EOF && date == "" && location == "" {
+		tag, has_attrs := t.TagName()
+		if next_token == html.StartTagToken && string(tag) == "li" && has_attrs {
+			if attr_has_value(*t, "class", "fecha") {
+				on_record = true
+			}
+		}
+		if next_token == html.StartTagToken && string(tag) == "li" && on_record {
+			col += 1
+		}
+		if next_token == html.EndTagToken && on_record && string(tag) == "span" {
+			on_tag = true
+		}
+		if next_token == html.EndTagToken && on_record && string(tag) == "li" {
+			on_tag = false
+		}
+		if next_token == html.TextToken {
+			if on_tag {
+				date = string(t.Text())
+				date = strings.TrimSpace(date)
+			}
+			if col == 4 {
+				location = string(t.Text())
+				location = strings.TrimSpace(location)
+			}
+		}
+		next_token = t.Next()
+	}
+	return date, location
+}
+
 func arc_parse_heats(t *html.Tokenizer) []Result {
 	var col_counter int
 	var heat_counter int
@@ -167,13 +204,13 @@ func arc_parse_results(t *html.Tokenizer) []Result {
 					}
 
 					if next_token == html.StartTagToken && string(tag) == "td" {
-						col_counter +=1
+						col_counter += 1
 						aux_text = ""
 
 					}
 
 					if next_token == html.EndTagToken && string(tag) == "th" && on_record {
-						position, err := strconv.Atoi(strings.TrimRight(aux_text, "º")) 
+						position, err := strconv.Atoi(strings.TrimRight(aux_text, "º"))
 						if err == nil {
 							result.Position = position
 						} else {
@@ -192,7 +229,7 @@ func arc_parse_results(t *html.Tokenizer) []Result {
 							result.Time = strings.TrimSpace(time)
 						}
 						if col_counter == 3 {
-							points, err := strconv.Atoi(aux_text) 
+							points, err := strconv.Atoi(aux_text)
 							if err != nil {
 								result.Points = points
 							}
@@ -200,12 +237,12 @@ func arc_parse_results(t *html.Tokenizer) []Result {
 
 					}
 
-					if next_token == html.TextToken && on_record{
+					if next_token == html.TextToken && on_record {
 						aux_text += string(t.Text())
 
 					}
 
-					if next_token == html.EndTagToken && string(tag) == "tr" && on_record{
+					if next_token == html.EndTagToken && string(tag) == "tr" && on_record {
 						results = append(results, result)
 					}
 
@@ -217,7 +254,7 @@ func arc_parse_results(t *html.Tokenizer) []Result {
 					next_token = t.Next()
 				}
 			}
-		} 
+		}
 		next_token = t.Next()
 	}
 	return results
@@ -244,8 +281,8 @@ func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 		}
 		if len(heat_results) == 0 {
 			heat_results = arc_parse_heats(tokenizer)
-			for _, res := range heat_results  {
-				for i, part_res := range estropada.Results  {
+			for _, res := range heat_results {
+				for i, part_res := range estropada.Results {
 					if part_res.TeamName == res.TeamName {
 						estropada.Results[i].Ziabogak = res.Ziabogak
 					}

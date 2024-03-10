@@ -25,6 +25,23 @@ func TestParseARCTitle(t *testing.T) {
 
 }
 
+func TestParseARCDateLocation(t *testing.T) {
+	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
+	if err != nil {
+		t.Error("Cannot open file", err)
+	}
+	expected_date := "6 Ago 2023"
+	expected_location := "Hondarribia (Gipuzkoa)"
+	tokenizer := html.NewTokenizer(doc)
+	date, location := arc_parse_date_location(tokenizer)
+	if date != expected_date {
+		t.Errorf("%s != %s", date, expected_date)
+	}
+	if location != expected_location {
+		t.Errorf("%s != %s", location, expected_location)
+	}
+}
+
 func TestParseARCHeats(t *testing.T) {
 
 	doc, err := os.Open("./html/hondarribia_arc1_2023.html")
