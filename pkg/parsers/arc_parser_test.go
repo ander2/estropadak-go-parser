@@ -30,7 +30,7 @@ func TestParseARCDateLocation(t *testing.T) {
 	if err != nil {
 		t.Error("Cannot open file", err)
 	}
-	expected_date := "6 Ago 2023"
+	expected_date := "2023-08-06T16:30:00+02:00"
 	expected_location := "Hondarribia (Gipuzkoa)"
 	tokenizer := html.NewTokenizer(doc)
 	date, location := arc_parse_date_location(tokenizer)
@@ -177,6 +177,19 @@ func TestArcCalendar(t *testing.T) {
 			t.Errorf("Expected '%s' for estropada, got '%s'", name, estropadak[i].Name)
 		}
 
+	}
+
+	if estropadak[2].League != "ARC1" {
+		t.Errorf("Expected %s league got %s", "ARC1", estropadak[2].League)
+	}
+
+	if estropadak[3].League != "ARC2" {
+		t.Errorf("Expected %s league got %s", "ARC1", estropadak[3].League)
+	}
+
+	expected_date := "2024-06-17T00:00:00+02:00"
+	if estropadak[0].Date != expected_date {
+		t.Errorf("Expected %s date, got %s", expected_date, estropadak[0].Date)
 	}
 
 }

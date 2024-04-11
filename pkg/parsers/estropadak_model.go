@@ -1,20 +1,20 @@
 package estropadakParser
 
-
 type Result struct {
-	TeamName string
-	Position int
-	Points int
+	TeamName     string
+	Position     int
+	Points       int
 	HeatPosition int
-	Heat int
-	Lane int
-	Time string
-	Ziabogak []string
+	Heat         int
+	Lane         int
+	Time         string
+	Ziabogak     []string
 }
 
 type Estropada struct {
-	Name string
-	Date string
+	Name     string
+	Date     string
+	League   string
 	Location string
-	Results []Result
+	Results  []Result
 }

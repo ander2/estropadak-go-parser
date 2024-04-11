@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
 )
@@ -30,35 +31,53 @@ func arc_parse_title(t *html.Tokenizer) string {
 }
 
 func arc_parse_date_location(t *html.Tokenizer) (string, string) {
-	var date, location string
+	var aux, date, location string
 	var on_record = false
 	var on_tag = false
 	var col = 0
 	var next_token html.TokenType
-	for t.Err() != io.EOF && date == "" && location == "" {
+	for t.Err() != io.EOF && (date == "" || location == "") {
 		tag, has_attrs := t.TagName()
-		if next_token == html.StartTagToken && string(tag) == "li" && has_attrs {
-			if attr_has_value(*t, "class", "fecha") {
+		if next_token == html.StartTagToken && string(tag) == "div" && has_attrs {
+			if attr_has_value(*t, "class", "detalles") {
 				on_record = true
 			}
 		}
 		if next_token == html.StartTagToken && string(tag) == "li" && on_record {
 			col += 1
 		}
-		if next_token == html.EndTagToken && on_record && string(tag) == "span" {
+		if next_token == html.SelfClosingTagToken && on_record && string(tag) == "br" {
 			on_tag = true
+		}
+		if next_token == html.EndTagToken && on_record && string(tag) == "div" {
+			on_record = false
 		}
 		if next_token == html.EndTagToken && on_record && string(tag) == "li" {
 			on_tag = false
+			aux = ""
+			if col == 2 {
+				date = strings.TrimSpace(date)
+				if len(date) == 16 {
+					date = "0" + date
+				}
+				date = strings.Replace(date, "20", "", 1)
+				date = strings.Replace(date, "Ago", "Aug", 1)
+				date += " CEST"
+				date_aux, err := time.Parse(time.RFC822, date)
+				if err != nil {
+					fmt.Println(err)
+				}
+				date = date_aux.Format(time.RFC3339)
+			}
 		}
 		if next_token == html.TextToken {
-			if on_tag {
-				date = string(t.Text())
-				date = strings.TrimSpace(date)
+			if on_tag && col < 3 {
+				aux = aux + strings.TrimSpace(string(t.Text()))
+				date += aux + " "
 			}
 			if col == 4 {
-				location = string(t.Text())
-				location = strings.TrimSpace(location)
+				aux = aux + strings.TrimSpace(string(t.Text()))
+				location = aux
 			}
 		}
 		next_token = t.Next()
@@ -273,6 +292,15 @@ func Arc_parse_estropadak_doc(estropada *Estropada, doc io.Reader) (string, erro
 				estropada.Name = title
 			}
 		}
+		if estropada.Date == "" {
+			date, location := arc_parse_date_location(tokenizer)
+			if date != "" {
+				estropada.Date = date
+			}
+			if location != "" {
+				estropada.Location = location
+			}
+		}
 		if len(estropada.Results) == 0 {
 			results = arc_parse_results(tokenizer)
 			if len(results) > 0 {
@@ -301,7 +329,7 @@ func Arc_parse_calendar(doc io.Reader) ([]Estropada, error) {
 	t := html.NewTokenizer(doc)
 	var calendar_parsed, on_record bool
 	var col_counter int
-	var aux_text string
+	var aux_text, league string
 
 	for t.Err() != io.EOF && !calendar_parsed {
 		tag, has_attrs := t.TagName()
@@ -309,6 +337,12 @@ func Arc_parse_calendar(doc io.Reader) ([]Estropada, error) {
 			if attr_has_value(*t, "class", "tab-item") {
 				on_record = true
 				estropada = Estropada{}
+			}
+			if attr_has_value(*t, "class", "g1") {
+				league = "ARC1"
+			}
+			if attr_has_value(*t, "class", "g2") {
+				league = "ARC2"
 			}
 		}
 
@@ -318,7 +352,22 @@ func Arc_parse_calendar(doc io.Reader) ([]Estropada, error) {
 
 		if next_token == html.EndTagToken && string(tag) == "td" && on_record {
 			if col_counter == 1 {
-				estropada.Date = strings.TrimSpace(aux_text)
+				date_aux := strings.TrimSpace(aux_text)
+				date_parts := strings.Split(date_aux, " ")
+				date_parts[1] = strings.Replace(date_parts[1], "Junio", "Jun", 1)
+				date_parts[1] = strings.Replace(date_parts[1], "Julio", "Jul", 1)
+				date_parts[1] = strings.Replace(date_parts[1], "Agosto", "Aug", 1)
+
+				year := time.Now().Year()
+				date_aux = fmt.Sprintf("%s %s %d 00:00 CEST", date_parts[0], date_parts[1], year%100)
+				if len(date_aux) == 19 {
+					date_aux = "0" + date_aux
+				}
+				date, err := time.Parse(time.RFC822, date_aux)
+				if err != nil {
+					fmt.Println(err)
+				}
+				estropada.Date = date.Format(time.RFC3339)
 			}
 
 			if col_counter == 2 {
@@ -329,6 +378,7 @@ func Arc_parse_calendar(doc io.Reader) ([]Estropada, error) {
 		}
 
 		if next_token == html.EndTagToken && string(tag) == "tr" && on_record {
+			estropada.League = league
 			estropadak = append(estropadak, estropada)
 			col_counter = 0
 			aux_text = ""
