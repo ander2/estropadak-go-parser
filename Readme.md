@@ -1,25 +1,35 @@
 # Estropadak Go Parser
 
-Simple estropada parser (Euskolabel, Euskotrenm, ARC1 and ARC2) built to learn and test Go lang.
+Simple estropada parser (Euskolabel, Euskotren, ARC1, ARC2 and ETE) built to learn and test Go lang.
+
 
 ## Current usage
 
-It parses an HTML result and prints the final classification as text table. By default, it read the content from Stdin, but an URL can be provided with the `-u` flag.
+There are two main usages:
+ - It can parse the HTML rowing calendar and return a race list.
+ - It can parse a result HTML page and return the race result. 
+ 
+ By default, it reads the content from Stdin, but an URL can be provided with the `-u` flag to fetch the contents.
 
-The `-t` flag specifies wich kind of parser (ACT or ARC) to use.
+The `-t` flag specifies wich kind of parser ACT or ARC to use. Euskolabel and Euskotren leagues use the **ACT** parser whereas ARC1, ARC2 and ETE use the **ARC** parser.
+
+The `-c` flag specifies if we are parsing a calendar file.
+
+The `-f` flag specifies the format of the output. Currently **text**(default), **json** and **yaml** are supported.
 
 ```
 $ ./estropadakparser -h
-Usage of estropadakparser:
+Usage of ./estropadakparser:
+  -c	Content is calendar. Default false. Parses a page containing a calendar URL
   -f string
-        Output format: text, yaml or json
+    	Output format: text, yaml or json
   -t string
-        Parser type: ACT or ARC (default "ACT")
+    	Parser type: ACT or ARC (default "ACT")
   -u string
-        Content URL: http://www.liga-arc.com/es/regata/489/xvii.-hondarribiko-arrantzaleen-kofradiko-bandera
+    	Content URL: http://www.liga-arc.com/es/regata/489/xvii.-hondarribiko-arrantzaleen-kofradiko-bandera
 ```
 
-### Parsing stdin
+### Parsing from stdin
 ```
 $ cat html/zarautz_act_2023_1.html | go run .
    XLVI. Zarauzko Ikurriña (J1) (19-08-2023)
